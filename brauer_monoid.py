@@ -1,128 +1,53 @@
-from os import write
+from scenes import *
 from manim import *
 import numpy as np
 from my_config import *
 from tangle import *
 from rna import *
+import pickle as pkl
 
-config['pixel_height'] = 720
-config['pixel_width'] = 1280
-config['frame_rate'] = 30
+config['pixel_height'] = 1080
+config['pixel_width'] = 1920
+config['frame_rate'] = 60
 
 config["background_color"] = palette["bg"]
 
-class SquareToCircle(Scene):
+class TitleScreen(SlideScene):
     def construct(self):
+        title = "A factorization algorithm\\\\for the Brauer Monoid"
+        speaker_name = "Daniele Marchei"
+        supervisor_name = "Emanuela Merelli"
+        logo = "imgs/unicam.png"
+        date = "18/11/2020"
 
-        text = Tex('Hello world')
+        title = Tex(title, color = BLUE).scale(1.1).shift(2.5*UP)
+        speaker_name = Tex(speaker_name).scale(0.7).next_to(title, 2*DOWN)
+        date = Tex(date).scale(0.5).next_to(speaker_name, DOWN)
 
-        self.play(Write(text))
+        supervisor = Tex(r'\textbf{Supervisor}').scale(0.5).move_to(DOWN)
+        supervisor_name = Tex(supervisor_name).scale(0.7).next_to(supervisor, DOWN)
+
+
+        texts = VGroup(title, speaker_name, date, supervisor, supervisor_name)
+
+        t1a = Tangle.get_prime_tangle("T1", 4, size = 2, color = DARK_GRAY).next_to(title, 3 * LEFT)
+        t1b = Tangle.get_prime_tangle("U1", 4, size = 2, color = DARK_GRAY).next_to(title, 3 * RIGHT)
+        t2a = Tangle.get_prime_tangle("T2", 4, size = 2, color = DARK_GRAY).next_to(t1a, 2 * DOWN)
+        t2b = Tangle.get_prime_tangle("U2", 4, size = 2, color = DARK_GRAY).next_to(t1b, 2 * DOWN)
+        t3a = Tangle.get_prime_tangle("T3", 4, size = 2, color = DARK_GRAY).next_to(t2a, 2 * DOWN)
+        t3b = Tangle.get_prime_tangle("U3", 4, size = 2, color = DARK_GRAY).next_to(t2b, 2 * DOWN)
+
+        self.add(t1a, t1b, t2a, t2b, t3a, t3b)
+
+        logo = ImageMobject(logo).next_to(supervisor_name, DOWN)
+        self.play(Write(texts))
+        self.play(FadeInFrom(logo, DOWN))
+
+
         self.wait()
 
-        square = Square()
-        square.flip(RIGHT)
-        square.rotate(- 3 * TAU / 8)
-
-        self.play(Transform(text, square))
-        self.wait()
-        
-        circle = Circle()
-        
-        self.play(Transform(square, circle))
-
-class TangleConstruct(Scene):
-     def construct(self):
-
-        point = 2 * UP + 2 * LEFT
-        size = 4
-
-        In = Tangle.get_prime_tangle("I", 4, size = size, point = point)
-        In.set_edge_color("1,1'", RED)
-        self.play(ShowCreation(In), run_time = 2)
-        e = In.get_edge("1,1'")
-        self.play(WiggleOutThenIn(e, scale_value = 1.2))
-        e = In.add_edge("1,2'")
-        self.play(ShowCreation(e))
-
-        self.wait()
-
-        tangle = Tangle("1,3 2,4' 4,2' 1',3'", size = size, point = point)
-        tangle.set_edge_color("1,3", RED)
-        self.play(ReplacementTransform(In, tangle))
-        
-        u1 = Tangle.get_prime_tangle("U1", 4, size = size, point = point)
-        self.play(ReplacementTransform(tangle, u1))
-
-        u2 = Tangle.get_prime_tangle("U2", 4, size = size, point = point)
-        self.play(ReplacementTransform(u1, u2))
-
-        t1 = Tangle.get_prime_tangle("T1", 4, size = size, point = point)
-        self.play(ReplacementTransform(u2, t1))
-
-        t2 = Tangle.get_prime_tangle("T2", 4, size = size, point = point)
-        self.play(ReplacementTransform(t1, t2))
-
-class TangleEmpty(Scene):
-     def construct(self):
-
-        empty = EmptyTangle(4)
-        self.play(ShowCreation(empty))
-
-        e = empty.add_edge("1,2'")
-        self.play(ShowCreation(e))
-
-        e = empty.get_edge_attached_to("2'")
-        self.play(WiggleOutThenIn(e))
-
-class TangleTransformation(Scene):
+class FactorTangle(SlideScene):
     def construct(self):
-
-        size = 3
-
-        In = Tangle.get_prime_tangle("I", 4, size = size)
-        self.play(ShowCreation(In))
-        u = Tangle("1,3 2,4' 4,2' 1',3'", size = size)
-        u.move_to(In)
-
-        self.play(TransformTangle(In, u))
-
-
-        self.play(ApplyMethod(u.shift, 2 * UP + 2 * LEFT))
-
-        empty = EmptyTangle(4, size = size)
-        empty.shift(DOWN)
-        
-        self.play(ShowCreation(empty))
-
-        self.play(PutUnderTangle(empty, u))
-
-        self.wait(3)
-
-class MergeTangles(Scene):
-    def construct(self):
-        u1 = Tangle.get_prime_tangle("U1", 4)
-        u2 = Tangle.get_prime_tangle("U2", 4)
-        u2.next_to(u1, DOWN)
-
-        self.add(u1)
-        self.add(u2)
-
-        self.play(PutUnderTangle(u2, u1))
-
-        g = Group(u1,u2)
-
-        r = Tangle("1,2 3,1' 4,4' 2',3'")
-
-        self.play(
-            FadeOutAndShift(g, RIGHT),
-            FadeInFrom(r, LEFT)
-        )
-        self.wait()
-
-class FactorTangle(Scene):
-    def construct(self):
-
-        #TODO: Add text to indicate which part of the screen is representing
 
         edge_col = [RED, PURPLE_C, BLUE, YELLOW]
 
@@ -346,11 +271,196 @@ class FactorTangle(Scene):
 
         self.wait()
 
-class MovingTest(Scene):
+class RnaFolding(SlideScene):
     def construct(self):
         rna = Rna("AGCUCUUAGCUACGAGGCUGCUA")
         self.play(Write(rna))
 
-        rna.start_updater() 
-        self.wait(20)
+        self.comment("Start Updater Fold")
 
+        rna.start_updater() 
+        self.wait(10)
+
+        self.comment("Stop Updater Fold")
+
+        rna.stop_updater()
+        self.wait()
+        rna.set_state("stretch")
+
+        self.comment("Start Updater Stretch")
+
+        rna.start_updater() 
+        self.wait(10)
+
+        self.comment("Stop Updater Stretch")
+
+        rna.stop_updater()
+
+        self.wait()
+
+        self.play(ApplyMethod(rna.move_to, ORIGIN))
+        self.wait()
+
+        simple = rna.get_simple()
+        print(simple)
+
+        with open("rna.obj", "wb") as rna_file:
+            pkl.dump(simple, rna_file)
+
+class RnaToFinger(SlideScene):
+    def construct(self):
+        with open("rna.obj", "rb") as rna_file:
+            rnaString, bonds = pkl.load(rna_file)
+        
+        rna = SimpleRna(rnaString, bonds)
+        rna.move_to(ORIGIN)
+        self.add(rna)
+
+        delete_unbonded = AnimationGroup(*[ShrinkToCenter(nuc) for nuc in rna.nucleotides if not nuc.bonded_with])
+        self.play(delete_unbonded)
+        self.wait()
+        
+        dot_bonded = []
+        dots = VGroup()
+        for nuc in rna.nucleotides:
+            if nuc.bonded_with:
+                d = Dot(nuc.get_center())
+                dots.add(d)
+                dot_bonded.append(ReplacementTransform(nuc, d)) 
+
+        self.play(*dot_bonded)
+        self.wait()
+        
+        to_delete = [0,-1,-2,-3]
+        lines = AnimationGroup(*[FadeOut(rna.lines[i]) for i in to_delete])
+        self.play(lines)
+        self.wait()
+
+        # Create finger diagram
+        finger1 = FingerDiagram(bonds)
+        finger1.move_to(rna)
+        for i,dot in enumerate(finger1.dots):
+            dot.move_to(dots.submobjects[i])
+        
+        self.remove(rna)
+        self.add(finger1)
+
+        finger2 = FingerDiagram(bonds)
+        finger2.move_to(finger1)
+        # Oh well...
+        self.clear()
+        self.play(ReplacementTransform(finger1,finger2))
+        self.wait()
+
+        with open("finger.obj", "wb") as finger_file:
+            pkl.dump(bonds, finger_file)
+
+class FingerToTangle(SlideScene):
+    def construct(self):
+        with open("finger.obj", "rb") as finger_file:
+            bonds = pkl.load(finger_file)
+        
+        finger = FingerDiagram(bonds)
+        finger.move_to(ORIGIN)
+        self.add(finger)
+
+        arrow = Arrow(RIGHT * 5, UP * 3 + RIGHT, color = BLUE, path_arc = TAU / 4).scale(0.5)
+        self.play(ShowCreation(arrow))
+        self.wait()
+        self.play(Uncreate(arrow))
+        self.wait()
+
+        dots1 = VGroup(*finger.dots[:len(bonds)])
+        dots2 = VGroup(*finger.dots[len(bonds):])
+
+        brace1 = Brace(dots1)
+        t1 = brace1.get_text("Bottom").scale(0.7)
+        brace2 = Brace(dots2)
+        t2 = brace2.get_text("Top").scale(0.7)
+
+        self.play(
+            FadeInFrom(brace1, LEFT),
+            FadeInFrom(t1, LEFT)
+        )
+
+        self.wait()
+
+        self.play(
+            ReplacementTransform(brace1, brace2),
+            ReplacementTransform(t1, t2)
+        )
+
+        self.wait()
+
+        self.play(
+            FadeOutAndShift(brace2, RIGHT),
+            FadeOutAndShift(t2, RIGHT)
+        )
+
+        self.wait()
+
+        colors = [RED, BLUE, GREEN, PURPLE, YELLOW]
+        apply_colors = []
+        for bond,col in zip(finger.bond_lines, colors):
+            apply = ApplyMethod(bond.set_color, col)
+            apply_colors.append(apply)
+
+        self.play(*apply_colors)
+        self.wait()
+
+        paths = []
+        k = len(bonds) - 1
+        for dot in finger.dots[len(bonds):]:
+            arc = ArcBetweenPoints(dot.get_center(), finger.dots[k].get_center() + 2 * UP)
+            move_along = MoveAlongPath(dot, arc, run_time = 2)
+            paths.append(move_along)
+            k -= 1
+        
+        finger.moving = True
+        self.play(*paths)
+        finger.moving = False
+        self.wait()
+
+        self.play(ApplyMethod(finger.move_to, ORIGIN))
+        self.wait()
+
+        lines = VGroup(*finger.lines)
+        self.play(FadeOut(lines))
+        self.wait()
+
+
+        texs = VGroup()
+        copy_top = finger.dots[len(bonds):].copy()
+        copy_top.reverse()
+        for i,dot in enumerate(copy_top):
+            t = Tex(str(i+1)).next_to(dot, 0.5 * UP).scale(0.7)
+            texs.add(t)
+
+        for i,dot in enumerate(finger.dots[:len(bonds)]):
+            t = Tex(str(i+1)+ "'").next_to(dot, 0.5 * DOWN).scale(0.7)
+            texs.add(t)
+
+        self.play(Write(texs))
+        self.wait()
+
+class Test(SlideScene):
+    def construct(self):
+        s = Dot()
+        arc = ArcBetweenPoints(ORIGIN, UR)
+        self.play(ShowCreation(s))
+        self.play(MoveAlongPath(s, arc))
+        self.wait()
+
+
+class FullScene(SceneWithTimeStamps):
+    def construct(self):
+        TitleScreen(self).construct()
+        self.clear()
+        FactorTangle(self).construct()
+        self.clear()
+        RnaFolding(self).construct()
+        self.clear()
+        RnaToFinger(self).construct()
+        self.clear()
+        FingerToTangle(self).construct()
+        self.clear()
